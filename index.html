@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="An excavation-themed study game for Anthro 3 Quiz 2.">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>The Anthro 3 Dig II</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@600;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a field notebook on excavation graph paper. Home is a single site board of dig modes; no levels. */
+:root{
+  --bg:#EDF0EC; --grid:#D3DBDC; --panel:#FAFBF8; --ink:#1E1A16; --muted:#5E6461;
+  --line:#C4CCCB; --accent:#D1256B; --accent-ink:#FFFFFF; --ok:#2C7A4B; --bad:#B0382C;
+  --ok-bg:#E1F0E6; --bad-bg:#F6E3E0; --tag:#F3EBD8; --tag-ink:#3B2F22;
+  --f-display:"Big Shoulders Stencil Display","Arial Narrow",Impact,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141719; --grid:#22282B; --panel:#1C2023; --ink:#ECE8E1; --muted:#9CA3A2;
+  --line:#343C40; --accent:#FF5A98; --accent-ink:#1A0B11; --ok:#5BC687; --bad:#F07A6C;
+  --ok-bg:#16301F; --bad-bg:#3A1C18; --tag:#2B2620; --tag-ink:#EADFC8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141719; --grid:#22282B; --panel:#1C2023; --ink:#ECE8E1; --muted:#9CA3A2;
+  --line:#343C40; --accent:#FF5A98; --accent-ink:#1A0B11; --ok:#5BC687; --bad:#F07A6C;
+  --ok-bg:#16301F; --bad-bg:#3A1C18; --tag:#2B2620; --tag-ink:#EADFC8; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{
+  background-color:var(--bg); color:var(--ink); font-family:var(--f-body); font-size:16px; line-height:1.5;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px; min-height:100vh;
+}
+.wrap{max-width:1040px; margin:0 auto; padding-inline:16px; padding-block:20px 48px}
+button{font:inherit; color:inherit; cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+.mono{font-family:var(--f-mono)}
+.eyebrow{font-family:var(--f-mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+
+/* header */
+header.top{display:flex; flex-wrap:wrap; align-items:end; justify-content:space-between; gap:12px 24px; margin-bottom:20px}
+h1{font-family:var(--f-display); font-weight:800; font-size:clamp(48px,9vw,88px); line-height:.9; margin:4px 0 0; letter-spacing:.01em; text-wrap:balance}
+h1 span{color:var(--accent)}
+.stats{display:flex; gap:8px; flex-wrap:wrap}
+.stat{background:var(--panel); border:1px solid var(--line); padding:6px 12px; min-width:92px}
+.stat b{display:block; font-family:var(--f-display); font-size:28px; line-height:1; font-variant-numeric:tabular-nums}
+.stat small{font-family:var(--f-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
+
+/* home */
+.strip{height:22px; border:2px solid var(--ink); margin-bottom:20px; background:linear-gradient(90deg,#3F3226 0 20%,#86643F 20% 38%,#C29355 38% 55%,#A39A89 55% 72%,#6E402A 72% 88%,#4E7A3A 88%)}
+.strip i{display:block; height:100%; background:var(--accent); transition:width .3s}
+.modes{display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.mode.primary{grid-column:1 / -1}
+.mode{display:grid; grid-template-columns:auto 1fr; gap:2px 14px; align-items:center; text-align:left; background:var(--panel); border:1px solid var(--line); padding:14px 16px; transition:border-color .15s, transform .15s}
+.mode:hover{border-color:var(--ink); transform:translate(-2px,-2px); box-shadow:4px 4px 0 var(--ink)}
+.mode .ico{grid-row:1 / span 2; width:44px; height:44px; display:grid; place-items:center; border:2px solid var(--ink); font-family:var(--f-display); font-weight:800; font-size:22px}
+.mode.primary .ico{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+.mode b{font-family:var(--f-display); font-weight:800; font-size:24px; letter-spacing:.02em; line-height:1.1}
+.mode span{font-size:14px; color:var(--muted)}
+.note{font-size:13px; color:var(--muted); background:var(--panel); border:1px dashed var(--line); padding:10px 12px}
+.linkbtn{background:none; border:0; padding:0; color:var(--accent); text-decoration:underline; font-size:13px}
+
+/* play */
+.bar{display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; margin-bottom:16px}
+.back{background:var(--panel); border:1px solid var(--line); padding:6px 12px; font-family:var(--f-mono); font-size:13px}
+.back:hover{border-color:var(--ink)}
+.bar .title{font-family:var(--f-display); font-weight:800; font-size:28px; letter-spacing:.02em; line-height:1}
+.bar .right{margin-left:auto; display:flex; gap:14px; font-family:var(--f-mono); font-size:13px; font-variant-numeric:tabular-nums}
+.streak{color:var(--accent); font-weight:600}
+.progress{height:8px; background:var(--panel); border:1px solid var(--line); margin-bottom:20px}
+.progress i{display:block; height:100%; background:var(--accent); transition:width .3s}
+
+.tag{
+  position:relative; max-width:760px; margin:0 auto; background:var(--tag); color:var(--tag-ink);
+  border:1px solid rgba(0,0,0,.15); padding:28px 28px 24px 64px;
+  clip-path:polygon(0 18px,18px 0,100% 0,100% 100%,18px 100%,0 calc(100% - 18px));
+}
+.tag::before{content:""; position:absolute; left:22px; top:50%; width:18px; height:18px; margin-top:-9px; border-radius:50%; background:var(--bg); box-shadow:inset 0 0 0 2px rgba(0,0,0,.25)}
+.tag .meta{display:flex; flex-wrap:wrap; gap:6px 16px; font-family:var(--f-mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; opacity:.75; margin-bottom:10px}
+.q{font-size:clamp(20px,3vw,26px); line-height:1.3; font-weight:700; margin:0 0 20px; text-wrap:balance}
+.opts{display:grid; gap:10px}
+.opt{display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:start; text-align:left; background:var(--panel); color:var(--ink); border:1px solid var(--line); padding:12px 14px; font-size:16px; transition:border-color .12s}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt .k{font-family:var(--f-mono); font-size:12px; border:1px solid var(--line); padding:1px 6px; margin-top:2px}
+.opt.right{background:var(--ok-bg); border-color:var(--ok)}
+.opt.wrong{background:var(--bad-bg); border-color:var(--bad)}
+.opt:disabled{cursor:default}
+.feedback{margin-top:16px; padding:12px 14px; border-left:4px solid var(--ok); background:var(--panel); color:var(--ink); font-size:15px}
+.feedback.bad{border-left-color:var(--bad)}
+.feedback b{font-family:var(--f-mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; display:block; margin-bottom:2px}
+.feedback.good b{color:var(--ok)} .feedback.bad b{color:var(--bad)}
+.actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; justify-content:flex-end}
+.btn{background:var(--ink); color:var(--bg); border:2px solid var(--ink); padding:10px 18px; font-family:var(--f-display); font-weight:800; font-size:20px; letter-spacing:.04em}
+.btn:hover{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.btn.ghost{background:transparent; color:var(--ink)}
+.btn.ghost:hover{background:var(--panel); color:var(--ink); border-color:var(--ink)}
+.btn:disabled{opacity:.4; cursor:default}
+.hint{font-family:var(--f-mono); font-size:11px; color:var(--muted); text-align:right; margin-top:8px}
+
+/* match */
+.match{display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; max-width:900px; margin:0 auto}
+@media (max-width:560px){.match{gap:8px}}
+.col{display:grid; gap:8px; align-content:start}
+.col h3{margin:0; font-family:var(--f-mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:400}
+.chip{text-align:left; background:var(--panel); border:1px solid var(--line); padding:10px 12px; font-size:15px; line-height:1.3; min-height:52px; transition:border-color .12s, opacity .3s}
+.chip.person{font-weight:700}
+.chip:hover:not(:disabled){border-color:var(--ink)}
+.chip.sel{border-color:var(--accent); box-shadow:inset 0 0 0 2px var(--accent)}
+.chip.done{background:var(--ok-bg); border-color:var(--ok); opacity:.6; cursor:default}
+.chip.miss{animation:shake .35s; border-color:var(--bad)}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* sequence */
+.seq{max-width:760px; margin:0 auto}
+.slots{display:grid; gap:8px; margin:16px 0}
+.slot{display:grid; grid-template-columns:3ch 1fr auto; gap:12px; align-items:center; min-height:52px; border:1px dashed var(--line); background:var(--panel); padding:8px 12px}
+.slot .n{font-family:var(--f-display); font-weight:800; font-size:24px; color:var(--muted)}
+.slot.filled{border-style:solid; border-color:var(--ink); cursor:pointer}
+.slot.right{border-color:var(--ok); background:var(--ok-bg)}
+.slot.wrong{border-color:var(--bad); background:var(--bad-bg)}
+.slot .when{font-family:var(--f-mono); font-size:12px; color:var(--muted); text-align:right}
+.pool{display:flex; flex-wrap:wrap; gap:8px}
+.pool .chip{min-height:0}
+.seq-prompt{font-size:20px; font-weight:700; margin:0 0 4px}
+
+/* flashcards */
+.card-stage{max-width:640px; margin:0 auto; perspective:1400px}
+.fcard{position:relative; width:100%; min-height:340px; border:0; padding:0; background:none; transform-style:preserve-3d; transition:transform .5s}
+.fcard.flip{transform:rotateY(180deg)}
+.face{position:absolute; inset:0; display:grid; place-items:center; align-content:center; gap:10px; padding:28px; backface-visibility:hidden; -webkit-backface-visibility:hidden; background:var(--tag); color:var(--tag-ink); border:1px solid rgba(0,0,0,.15)}
+.face.back{transform:rotateY(180deg); background:var(--panel); color:var(--ink); border-color:var(--line)}
+.face .term{font-family:var(--f-display); font-weight:800; font-size:clamp(34px,6vw,52px); line-height:1; text-align:center; text-wrap:balance}
+.face .def{font-size:18px; line-height:1.45; text-align:center; max-width:52ch}
+.face .eyebrow{position:absolute; top:14px; left:16px}
+
+/* results */
+.result{max-width:760px; margin:0 auto; background:var(--panel); border:2px solid var(--ink); padding:24px}
+.result h2{font-family:var(--f-display); font-weight:800; font-size:clamp(40px,7vw,60px); line-height:1; margin:4px 0 8px}
+.misslist{list-style:none; padding:0; margin:16px 0 0; display:grid; gap:10px}
+.misslist li{border-left:3px solid var(--bad); padding:4px 0 4px 12px; font-size:15px}
+.misslist li b{display:block}
+.misslist li span{color:var(--muted)}
+
+@media (prefers-reduced-motion: reduce){*{transition:none!important; animation:none!important}}
+</style>
+
+</head>
+<body>
+
+<div class="wrap" id="app"></div>
+
+<script>
+/* ---------- CONTENT (all from the Study Notes for Quiz No. 2) ---------- */
+const TOPICS = {
+  cult:"Studying Culture", org:"Social Organization", evid:"Evidence & Context",
+  field:"Finding Sites", ppl:"Theorists & Methods", date:"Dating & Formation", civ:"Civilization"
+};
+
+// t: topic, q: question, a: correct, d: distractors, x: explanation
+const Q = [
+ // ---- cult
+ {t:"cult", q:"Archaeology is best defined as…", a:"The study of material remains for reconstructing past human behavior", d:["The study of fossil remains of plants and animals","The comparative study of living cultures","The study of written records only"], x:"We recover and analyze cultural remains within their environmental context."},
+ {t:"cult", q:"Which is NOT one of the four aspects of human culture in the notes?", a:"Demography", d:["Technology","Economy","Ideology"], x:"The four are Technology, Economy, Organization, and Ideology. Demography and Environment affect all four."},
+ {t:"cult", q:"Tools, facilities, and the knowledge humans use to obtain or create resources make up…", a:"Technology", d:["Economy","Organization","Ideology"], x:"Technology tells us how humans interact with their environment."},
+ {t:"cult", q:"According to the notes, technology changes because of…", a:"Invention, diffusion, and migration", d:["Reciprocity, redistribution, and markets","Bands, tribes, and chiefdoms","Discard, loss, and caching"], x:"Changes in stone tools, ceramics, phones, etc. demonstrate the passage of time."},
+ {t:"cult", q:"The activities and materials people use to feed themselves are called…", a:"Subsistence", d:["Redistribution","Demography","Iconography"], x:"Subsistence patterns differ among hunter-gatherers, agriculturalists, and industrial societies."},
+ {t:"cult", q:"Gift giving among family members, with no expectation of immediate or equal return, is…", a:"Reciprocity", d:["Redistribution","Market exchange","Division of labor"], x:"A mutual exchange of favors, benefits, or privileges."},
+ {t:"cult", q:"Pharaohs distributing grain during famines is an example of…", a:"Redistribution", d:["Reciprocity","Market exchange","Diffusion"], x:"Resources transferred through a social mechanism run by rulers or a government. Social Security is another example."},
+ {t:"cult", q:"Social Security is a modern example of which type of exchange?", a:"Redistribution", d:["Reciprocity","Market exchange","Barter"], x:"A government moves income or resources from some groups to others."},
+ {t:"cult", q:"A centralized, regulated place where currency is used and prices follow supply and demand is…", a:"Market exchange", d:["Reciprocity","Redistribution","Subsistence"], x:"Buying and selling."},
+ {t:"cult", q:"How do archaeologists study exchange (trade)?", a:"By looking at the distribution of items of exchange", d:["By counting tree rings","By measuring argon in rock","By interviewing living informants only"], x:"Where traded goods end up shows the trade."},
+ {t:"cult", q:"Separating production into specialized tasks (farmers, artisans, merchants, priests) is called…", a:"Division of labor", d:["Redistribution","Circumscription","Seriation"], x:"Part of the economy, and also seen in organization."},
+ {t:"cult", q:"The roles and relationships of all members of a society (men, women, and children) describe…", a:"Organization", d:["Ideology","Technology","Environment"], x:"Societies are organized by kinship, lineages, clans, rank, caste, and class."},
+ {t:"cult", q:"The way people view and understand their world, including cosmology, symbols, and rituals, is…", a:"Ideology", d:["Organization","Economy","Demography"], x:"Ideology provides a society's norms, values, and beliefs."},
+ {t:"cult", q:"Whether marriage is seen as an economic or a romantic relationship is shaped by…", a:"Ideology", d:["Technology","Demography","Environment"], x:"Ideology influences dress, food, housing, and who can marry whom."},
+ {t:"cult", q:"The statistical study of populations (size, density, fertility, mortality, migration) is…", a:"Demography", d:["Typology","Taphonomy","Ethnoarchaeology"], x:"Demography and environment affect all four aspects of culture."},
+
+ // ---- org
+ {t:"org", q:"Who classified human societies into bands, tribes, chiefdoms, and states?", a:"Elman Service", d:["V. Gordon Childe","Franz Boas","Julian Steward"], x:"Primitive Social Organization: An Evolutionary Perspective (1962)."},
+ {t:"org", q:"The simplest, smallest, oldest form of organization, egalitarian and nomadic, is the…", a:"Band", d:["Tribe","Chiefdom","State"], x:"Usually fewer than 50–100 people related by kinship or marriage."},
+ {t:"org", q:"A society of hundreds to a few thousand people, with horticulture or pastoralism and influence held by \"Big Men,\" is a…", a:"Tribe", d:["Band","Chiefdom","State"], x:"Organized into lineages, clans, or villages, but no centralized government or formal laws."},
+ {t:"org", q:"In which type of society are leaders ascribed and hereditary, inherited through kinship?", a:"Chiefdom", d:["Band","Tribe","None of Service's types"], x:"Society is ranked into the chief's family and aristocracy vs. commoners."},
+ {t:"org", q:"A paramount chief governing regional sub-chiefs, who rule local village chiefs, describes a…", a:"Complex chiefdom", d:["Band","Tribe","Market economy"], x:"Chiefdoms can be layered."},
+ {t:"org", q:"Formal government, bureaucracy, police, military, taxation, and census systems characterize a…", a:"State", d:["Chiefdom","Tribe","Band"], x:"Also intensive agriculture, defined citizenship, and sharp social inequality."},
+ {t:"org", q:"Which of Service's types is described as highly egalitarian?", a:"Band", d:["Chiefdom","State","Complex chiefdom"], x:"Bands are small, mobile, and egalitarian."},
+ {t:"org", q:"Tribes typically live in…", a:"Permanent or semi-permanent settlements", d:["Large cities with bureaucracies","Constantly moving camps only","Capitals ruled by a paramount chief"], x:"Practicing small-scale farming (horticulture) or herding (pastoralism)."},
+
+ // ---- evid
+ {t:"evid", q:"The principal method of data acquisition in archaeology is…", a:"Excavation", d:["Seriation","Classification","Ethnoarchaeology"], x:"The systematic uncovering of remains by digging a given area."},
+ {t:"evid", q:"Ordering items into groups based on shared attributes (traits) is…", a:"Classification", d:["Provenience","Bioturbation","Redistribution"], x:"Used in biology, libraries, census work, and archaeology."},
+ {t:"evid", q:"In science, the study of categories is called…", a:"Typology", d:["Taphonomy","Demography","Iconography"], x:"Artifacts, features, structures, and ecofacts are archaeology's basic categories."},
+ {t:"evid", q:"Portable objects made or used by people are…", a:"Artifacts", d:["Features","Ecofacts","Structures"], x:"Portability is the key."},
+ {t:"evid", q:"A fire hearth, midden, or posthole is an example of a…", a:"Feature", d:["Artifact","Ecofact","Tell"], x:"Features are non-portable."},
+ {t:"evid", q:"Plant and animal remains, soils, and sediments that reveal diet are…", a:"Ecofacts", d:["Artifacts","Features","Structures"], x:"Natural remains: flora, fauna, soil."},
+ {t:"evid", q:"Canals, roadways, irrigation systems, and monumental buildings are…", a:"Structures", d:["Ecofacts","Artifacts","Matrices"], x:"Large human-made constructions."},
+ {t:"evid", q:"A West Asian / Middle Eastern mound formed by successive human occupation over a long time is a…", a:"Tell", d:["Midden","Matrix","Cache"], x:"Layer after layer of settlement."},
+ {t:"evid", q:"The exact location where cultural remains were originally deposited is their…", a:"Primary context", d:["Secondary context","Matrix","Association"], x:"Secondary context = moved from the original place of deposit."},
+ {t:"evid", q:"Remains that were moved from their original place of deposit are in…", a:"Secondary context", d:["Primary context","In situ","Provenience"], x:"Context is an object's relationship to other artifacts, features, or strata."},
+ {t:"evid", q:"The physical medium surrounding archaeological data (soil, sand, gravel, water) is the…", a:"Matrix", d:["Provenience","Association","Tell"], x:"What the find is embedded in."},
+ {t:"evid", q:"The three-dimensional location of an artifact within a site is its…", a:"Provenience", d:["Association","Matrix","Typology"], x:"Its horizontal and vertical position."},
+ {t:"evid", q:"\"In situ\" means…", a:"In its original place of discovery", d:["Moved by flooding","Stored in a museum","Dated by tree rings"], x:"Latin for \"in position.\""},
+ {t:"evid", q:"The cultural remains and features found together with an artifact are its…", a:"Association", d:["Provenience","Matrix","Seriation"], x:"What it was found with."},
+
+ // ---- field
+ {t:"field", q:"What is the FIRST step in an archaeological research design?", a:"Formulate a research strategy to resolve a question", d:["Publish the results","Process and analyze the evidence","Discover and record sites"], x:"Strategy → collect evidence → discover & record sites → analyze & interpret → publish."},
+ {t:"field", q:"Field walking and surface collection are which kind of sampling?", a:"Unsystematic", d:["Systematic","Aerial","Stratigraphic"], x:"Systematic sampling uses a grid."},
+ {t:"field", q:"Sampling with a grid system is…", a:"Systematic", d:["Unsystematic","Seriation","Reciprocal"], x:"Ground survey sampling comes in two kinds: unsystematic and systematic."},
+ {t:"field", q:"Which technology is used today to find sites in jungles and other hard-to-cross terrain?", a:"Lidar", d:["Petrography","Dendrochronology","Potassium-argon"], x:"Laser scanning from the air reveals structures under vegetation."},
+ {t:"field", q:"Survey images can be layered in a graphics system called…", a:"GIS (Geographic Information Systems)", d:["CRM","DNA","K-Ar"], x:"Combines aerial, satellite, lidar, and drone data."},
+ {t:"field", q:"Aerial survey primarily uses…", a:"Aerial and satellite imagery", d:["Shovel test pits","Tree rings","Argon measurements"], x:"Drones and lidar extend it."},
+
+ // ---- ppl
+ {t:"ppl", q:"Who coined the terms \"Neolithic Revolution\" and \"Urban Revolution\"?", a:"V. Gordon Childe", d:["Lewis Binford","Elman Service","Karl Wittfogel"], x:"An Australian based in Britain, interested in the origin of civilizations."},
+ {t:"ppl", q:"Childe concluded that a constantly recurring collection of artifacts, called an ___, could be attributed to a group of people.", a:"Assemblage", d:["Ecofact","Tell","Matrix"], x:"Recurring assemblages = an archaeological culture."},
+ {t:"ppl", q:"Who is the father of American anthropology?", a:"Franz Boas", d:["Alfred Kroeber","Manuel Gamio","Lewis Binford"], x:"He created four-field anthropology."},
+ {t:"ppl", q:"Cultural relativism holds that…", a:"Cultures can't be ranked as superior or inferior; differences come from history and environment", d:["Cultures evolve from savagery to civilization","Biology and race determine cultural differences","Culture is the primary adaptive mechanism to environment"], x:"Franz Boas's most famous idea."},
+ {t:"ppl", q:"Who is the father of Mexican anthropology?", a:"Manuel Gamio", d:["Julio Tello","Alfred Kroeber","Gordon Willey"], x:"Studied under Boas; ran stratigraphic excavations at Teotihuacan and credited it to indigenous peoples."},
+ {t:"ppl", q:"Manuel Gamio conducted stratigraphic excavations at…", a:"Teotihuacan", d:["The Virú Valley","Pompeii","Norte Chico"], x:"He ascribed the monuments to native peoples."},
+ {t:"ppl", q:"Who established the Direct Historical Approach?", a:"Alfred Kroeber", d:["Franz Boas","Gordon Willey","Julian Steward"], x:"Work backwards from known history or ethnography into the prehistoric past. He also founded anthropology at UC Berkeley."},
+ {t:"ppl", q:"The Direct Historical Approach works…", a:"Backwards from a known historic period into the unknown past", d:["Forwards from the oldest layer to the newest","Only with radiocarbon dates","By ranking cultures on an evolutionary scale"], x:"From Alfred Kroeber."},
+ {t:"ppl", q:"Which approach views culture as humans' primary adaptive mechanism to their environment?", a:"Cultural ecology", d:["Cultural relativism","Direct historical approach","Hydraulic hypothesis"], x:"Julian Steward: cultural ecology and culture change."},
+ {t:"ppl", q:"Gordon Willey plotted site distributions across multiple time periods in…", a:"The Virú Valley", d:["The Nile Valley","Teotihuacan","The Ohio River Valley"], x:"He interpreted results in the context of changing environment."},
+ {t:"ppl", q:"Who is the father of the \"New Archaeology\"?", a:"Lewis R. Binford", d:["V. Gordon Childe","Franz Boas","Gordon Willey"], x:"He pushed rigorous scientific methods and questions about cultural evolution and organization."},
+ {t:"ppl", q:"Who wrote Ceramics for the Archaeologist, applying chemistry, geology, and physics to pottery?", a:"Anna O. Shepard", d:["Esther Boserup","Dorothy Garrod","Gertrude Caton-Thompson"], x:"American ceramic expert (1903–1978), worked on Mesoamerican and Southwestern ceramics."},
+ {t:"ppl", q:"Microscopic examination of pottery fabrics to trace raw-material sources is…", a:"Petrographic analysis", d:["Dendrochronology","Seriation","Bioturbation"], x:"Uses optical microscopy, scanning electron microscopy, and X-ray diffraction."},
+ {t:"ppl", q:"Studying how contemporary people make tools and build houses, for archaeological reasons, is…", a:"Ethnoarchaeology", d:["Experimental archaeology","Taphonomy","Cultural relativism"], x:"Watching what living people leave behind."},
+ {t:"ppl", q:"Making ancient-style tools and using them to see how they wear and break is…", a:"Experimental archaeology", d:["Ethnoarchaeology","Petrographic analysis","Seriation"], x:"Also reconstructing ancient fields, terraces, or canals to test productivity."},
+
+ // ---- date
+ {t:"date", q:"Dating that puts events in order (oldest to youngest) without numerical ages is…", a:"Relative dating", d:["Absolute dating","Radiocarbon dating","Dendrochronology"], x:"Stratigraphy and seriation are relative methods."},
+ {t:"date", q:"The Law of Superposition says…", a:"Younger layers sit on top of older layers", d:["Older layers sit on top of younger layers","All layers form at the same time","Artifacts move upward over time"], x:"Deeper = generally older."},
+ {t:"date", q:"Ordering objects by gradual changes in style or popularity is…", a:"Seriation", d:["Stratigraphy","Dendrochronology","Taphonomy"], x:"Two types: stylistic and frequency."},
+ {t:"date", q:"Who first applied seriation, dating Egyptian ceramics?", a:"Sir William Flinders Petrie", d:["Willard Libby","Anna O. Shepard","Lewis Binford"], x:"Sequence dating from pottery styles."},
+ {t:"date", q:"What are the two types of seriation?", a:"Stylistic and frequency", d:["Cultural and natural","Primary and secondary","Systematic and unsystematic"], x:"Cultural/natural are formation processes; primary/secondary are context."},
+ {t:"date", q:"Determining a specific numerical age in years is…", a:"Absolute dating", d:["Relative dating","Seriation","Stratigraphy"], x:"Radiocarbon, potassium-argon, dendrochronology."},
+ {t:"date", q:"Who introduced radiocarbon dating in 1949?", a:"Willard Libby", d:["Flinders Petrie","Julian Steward","Robert Carneiro"], x:"A physicist using the decay rate of carbon-14."},
+ {t:"date", q:"Radiocarbon (C-14) dates organic remains up to roughly…", a:"60,000 years", d:["6,000 years","600,000 years","1.3 billion years"], x:"Beyond that, too little C-14 is left."},
+ {t:"date", q:"Which method dates ancient volcanic rock?", a:"Potassium-argon", d:["Carbon-14","Dendrochronology","Seriation"], x:"Measures argon built up from potassium-40 decay."},
+ {t:"date", q:"Dendrochronology dates wood using…", a:"Annual tree growth rings", d:["Argon in volcanic rock","Carbon-14 decay","Pottery styles"], x:"Dates ancient timbers to the exact calendar year."},
+ {t:"date", q:"What are the two types of site formation processes?", a:"Cultural and natural", d:["Relative and absolute","Stylistic and frequency","Primary and secondary"], x:"Cultural = how people deposit things. Natural = environment."},
+ {t:"date", q:"Which is a CULTURAL formation process?", a:"Caching", d:["Bioturbation","Floods","Volcanic eruption"], x:"Cultural: discard, loss, caching, ritual interment, recycling."},
+ {t:"date", q:"Disturbance of deposits by plants and animals (roots, burrows) is called…", a:"Bioturbation", d:["Taphonomy","Redistribution","Circumscription"], x:"A natural formation process."},
+ {t:"date", q:"The study of how organisms become part of the fossil or archaeological record is…", a:"Taphonomy", d:["Typology","Demography","Petrography"], x:"What happens between death and discovery."},
+
+ // ---- civ
+ {t:"civ", q:"Which is NOT one of the six cradles of early civilization?", a:"Ancient Greece", d:["Indus Valley","Mesoamerica","The Andes"], x:"The six: Mesopotamia, Egypt, Indus Valley, China, Mesoamerica, Andes."},
+ {t:"civ", q:"Norte Chico and Chavín belong to which cradle of civilization?", a:"The Andes", d:["Mesoamerica","Indus Valley","Mesopotamia"], x:"Both in Peru."},
+ {t:"civ", q:"The Olmec, Maya, and Teotihuacan belong to…", a:"Mesoamerica", d:["The Andes","Ancient China","The Fertile Crescent"], x:"One of the six cradles."},
+ {t:"civ", q:"Ancient China's cradle developed along which rivers?", a:"Huang He and Yangtze", d:["Tigris and Euphrates","Nile","Indus"], x:"Mesopotamia = Tigris & Euphrates; Egypt = Nile."},
+ {t:"civ", q:"Which is part of the notes' definition of civilization?", a:"Urbanism, monumental public works, and writing", d:["Small, egalitarian, nomadic groups","No centralized authority","Leadership held by \"Big Men\""], x:"Also centralized government, social inequality, long-distance trade, standing military, and a state economy."},
+ {t:"civ", q:"Who proposed the Urban Revolution theory: agricultural surplus leads to specialization and a ruling class?", a:"V. Gordon Childe", d:["Karl Wittfogel","Robert Carneiro","Esther Boserup"], x:"Surplus → labor specialization → centralized management → ruling class."},
+ {t:"civ", q:"The Hydraulic Hypothesis argues civilization arose from…", a:"The need to manage large-scale irrigation", d:["Warfare over limited land","Population pressure forcing innovation","Long-distance trade alliances"], x:"Karl Wittfogel, Oriental Despotism."},
+ {t:"civ", q:"Who wrote Oriental Despotism and proposed the Hydraulic Hypothesis?", a:"Karl Wittfogel", d:["Robert Carneiro","Colin Renfrew","Elman Service"], x:"Focused on Mesopotamia, Egypt (Nile), and early China."},
+ {t:"civ", q:"Circumscription Theory says states were forged through…", a:"Warfare and conquest where land is limited", d:["Managing irrigation canals","Trade alliances","Gift-giving reciprocity"], x:"Robert Carneiro, A Theory of the Origin of the State."},
+ {t:"civ", q:"Who proposed Circumscription Theory?", a:"Robert Carneiro", d:["Karl Wittfogel","Esther Boserup","Karl Polanyi"], x:"Warfare under geographic limits."},
+ {t:"civ", q:"Esther Boserup argued that civilization emerged from…", a:"Population pressure forcing agricultural intensification", d:["Control of irrigation","Warfare over land","Trade networks"], x:"The Conditions of Agricultural Growth."},
+ {t:"civ", q:"Renfrew, Rathje, and Polanyi saw what as the prime mover of early states?", a:"Trade and economic exchange", d:["Warfare","Irrigation","Population pressure"], x:"A cooperative mechanism managing long-distance trade and spreading ideas."},
+ {t:"civ", q:"Which theory of civilization is the most cooperative rather than conflict-driven?", a:"Trade and economic exchange", d:["Circumscription","Hydraulic despotism","None of them"], x:"Trade builds alliances and spreads inventions; circumscription is about conquest."},
+];
+
+const CARDS = [
+ ["Archaeology","The study of material remains for reconstructing past human behavior."],
+ ["Technology","Tools, facilities, and knowledge used to obtain or create resources. Changes through invention, diffusion, and migration."],
+ ["Economy","How people obtain foods, materials, and goods to sustain their lives."],
+ ["Subsistence","The activities and materials people use to feed themselves."],
+ ["Reciprocity","Mutual exchange of favors or gifts, with no expectation of immediate or equal return."],
+ ["Redistribution","Resources moved from some groups to others by a ruler or government. E.g., pharaohs' grain, Social Security."],
+ ["Market exchange","Buying and selling in a regulated marketplace with currency; prices set by supply and demand."],
+ ["Division of labor","Splitting production into specialized tasks and roles."],
+ ["Organization","The roles and relationships of all members of a society."],
+ ["Ideology","How people view and understand their world: norms, values, beliefs, cosmology, symbols, rituals."],
+ ["Demography","Statistical study of populations: size, density, distribution, composition, fertility, mortality, migration."],
+ ["Band","Smallest, oldest society type: under ~50–100 kin, egalitarian, mobile, nomadic."],
+ ["Tribe","Hundreds to thousands; lineages and clans; horticulture or pastoralism; \"Big Men,\" no central government."],
+ ["Chiefdom","Power centralized under a hereditary chief over several villages; ranked society."],
+ ["State","Centralized government over a defined territory; bureaucracy, police, military, taxes, sharp inequality."],
+ ["Typology","The study of categories."],
+ ["Artifact","Portable object made or used by people."],
+ ["Feature","Non-portable artifact: architecture, hearths, middens, postholes."],
+ ["Structure","Large human-made construction: buildings, roads, canals, monuments."],
+ ["Ecofact","Natural remains (plants, animals, soils) that reveal diet and subsistence."],
+ ["Tell","Middle Eastern mound formed by successive occupation over a long time."],
+ ["Primary context","Where remains were originally deposited."],
+ ["Secondary context","Where remains ended up after being moved from the original deposit."],
+ ["Matrix","The medium surrounding the data: soil, sand, gravel, water."],
+ ["Association","The remains and features found together with an artifact."],
+ ["Provenience","An object's three-dimensional location within the site."],
+ ["In situ","In its original place of discovery."],
+ ["Lidar","Airborne laser scanning that finds sites under jungle and rough terrain."],
+ ["GIS","Geographic Information Systems: layers survey images and data."],
+ ["Assemblage","A recurring collection of artifacts that Childe linked to a group of people."],
+ ["Cultural relativism","Boas: cultures can't be ranked as superior or inferior; differences come from history and environment, not biology."],
+ ["Direct historical approach","Kroeber: work backwards from known history into the prehistoric past."],
+ ["Cultural ecology","Steward: the relationship between society and environment; culture as the main adaptive mechanism."],
+ ["Petrographic analysis","Microscopic study of rocks, minerals, and pottery fabrics to find composition and source."],
+ ["Relative dating","Puts events in order without numerical ages. E.g., stratigraphy, seriation."],
+ ["Law of Superposition","Younger layers lie on top of older layers."],
+ ["Seriation","Ordering objects by gradual stylistic or frequency changes. First used by Petrie."],
+ ["Absolute dating","Gives a numerical age in years. E.g., C-14, potassium-argon, dendrochronology."],
+ ["Radiocarbon (C-14)","Dates organic remains up to ~60,000 years. Willard Libby, 1949."],
+ ["Potassium-argon","Dates ancient volcanic rock by argon from potassium-40 decay."],
+ ["Dendrochronology","Dates wood by annual tree rings."],
+ ["Bioturbation","Natural disturbance of deposits by plants and animals."],
+ ["Taphonomy","How organisms become part of the fossil or archaeological record."],
+ ["Ethnoarchaeology","Studying living people to understand how material remains are made."],
+ ["Experimental archaeology","Recreating and using ancient tools or fields to see how they work, wear, and break."],
+ ["Civilization","Complex stratified state society: cities, central government, inequality, monuments, writing, trade, military."],
+];
+
+const PAIRS = [
+ ["Elman Service","Bands, tribes, chiefdoms, states (1962)"],
+ ["V. Gordon Childe","Neolithic and Urban Revolutions"],
+ ["Franz Boas","Four fields; cultural relativism"],
+ ["Manuel Gamio","Stratigraphic digs at Teotihuacan"],
+ ["Alfred Kroeber","Direct historical approach; UC Berkeley"],
+ ["Julian Steward","Cultural ecology and culture change"],
+ ["Gordon Willey","Site distributions in the Virú Valley"],
+ ["Lewis Binford","Father of the New Archaeology"],
+ ["Anna O. Shepard","Ceramics for the Archaeologist"],
+ ["Flinders Petrie","First seriation, Egyptian ceramics"],
+ ["Willard Libby","Radiocarbon dating, 1949"],
+ ["Karl Wittfogel","Hydraulic hypothesis"],
+ ["Robert Carneiro","Circumscription theory"],
+ ["Esther Boserup","Population pressure"],
+ ["Renfrew, Rathje & Polanyi","Trade and economic exchange"],
+];
+
+const SEQS = [
+ {name:"Service's Four Types", prompt:"Order Service's societies from simplest to most complex.", items:[["Band","< 50–100 people"],["Tribe","hundreds to a few thousand"],["Chiefdom","hereditary chief"],["State","formal government"]]},
+ {name:"Research Design", prompt:"Order the steps of an archaeological research design.", items:[["Formulate a research strategy"],["Collect and record evidence"],["Discover and record sites"],["Process, analyze, and interpret"],["Publish the results"]]},
+ {name:"Complex Chiefdom", prompt:"Order the chiefs from highest to lowest authority.", items:[["Paramount chief"],["Regional sub-chief"],["Local village chief"],["Commoners"]]},
+ {name:"Childe's Revolutions", prompt:"Order Childe's revolutions and their outcomes, earliest first.", items:[["Neolithic Revolution","farming"],["Agricultural surplus"],["Urban Revolution","cities and states"]]},
+ {name:"Trench Profile", prompt:"By the Law of Superposition, order these finds from the TOP layer down.", items:[["Coke bottle","youngest"],["Iron nail"],["Bronze pin"],["Painted pottery sherd"],["Stone hand axe","oldest"]]},
+];
+
+/* ---------- STATE ---------- */
+const STORE_KEY = "the-dig-quiz2-v1";
+let save = {m:{}, finds:0, best:0};
+try{ const s = JSON.parse(localStorage.getItem(STORE_KEY)); if(s && s.m) save = s; }catch(e){}
+function persist(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(save)); }catch(e){} }
+Q.forEach((q,i)=> q.id = q.t + i);
+
+const $app = document.getElementById("app");
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let keyHandler = null;
+function setKeys(fn){ keyHandler = fn; }
+document.addEventListener("keydown", e => { if(keyHandler && !e.metaKey && !e.ctrlKey && !e.altKey) keyHandler(e); });
+
+function statsHTML(){
+  const total = Math.round(100 * Q.filter(q => save.m[q.id] === 1).length / Q.length);
+  return `<div class="stats">
+    <div class="stat"><b>${save.finds}</b><small>Finds</small></div>
+    <div class="stat"><b>${save.best}</b><small>Best streak</small></div>
+    <div class="stat"><b>${total}%</b><small>Site cleared</small></div></div>`;
+}
+
+/* ---------- HOME ---------- */
+function home(){
+  setKeys(null);
+  const cleared = Math.round(100 * Q.filter(q => save.m[q.id] === 1).length / Q.length);
+  const missed = Object.values(save.m).filter(v=>v===0).length;
+  $app.innerHTML = `
+  <header class="top">
+    <div><div class="eyebrow">Anthro 3 · Principles of Archaeology · Quiz 2</div>
+    <h1>The <span>Dig</span> II</h1></div>
+    ${statsHTML()}
+  </header>
+  <div class="strip" role="img" aria-label="${cleared}% of the site cleared"><i style="width:${cleared}%"></i></div>
+  <section class="modes">
+    <button class="mode primary" data-mode="mixed"><span class="ico">✱</span><b>Full Excavation</b><span>20 questions drawn from the whole study guide</span></button>
+    <button class="mode" data-mode="match"><span class="ico">⇄</span><b>Match the Finds</b><span>Pair theorists and scientists with their ideas</span></button>
+    <button class="mode" data-mode="seq"><span class="ico">≡</span><b>Stratigraphy</b><span>Put societies, steps, and layers in order</span></button>
+    <button class="mode" data-mode="cards"><span class="ico">▯</span><b>Field Cards</b><span>Flip through ${CARDS.length} key terms</span></button>
+    ${missed ? `<button class="mode" data-mode="review"><span class="ico">↺</span><b>Back to the Sieve</b><span>Retry the ${missed} question${missed===1?"":"s"} you last missed</span></button>` : `<button class="mode" data-mode="all"><span class="ico">∞</span><b>Whole Site</b><span>All ${Q.length} questions, shuffled</span></button>`}
+  </section>
+  <p class="note" style="margin-top:16px">${Q.length} questions, ${PAIRS.length} matches, and ${CARDS.length} terms, all taken from your Quiz 2 study notes. Progress saves in this browser. <button class="linkbtn" id="reset">Reset progress</button></p>`;
+  $app.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => {
+    const m = b.dataset.mode;
+    if(m==="mixed") quiz(shuffle(Q).slice(0,20), "Full Excavation");
+    if(m==="all") quiz(shuffle(Q), "Whole Site");
+    if(m==="review") quiz(shuffle(Q.filter(q => save.m[q.id]===0)), "Back to the Sieve");
+    if(m==="match") match();
+    if(m==="seq") seqMenu();
+    if(m==="cards") cards();
+  });
+  const r = document.getElementById("reset");
+  r.onclick = () => {
+    if(r.dataset.armed){ save = {m:{}, finds:0, best:0}; persist(); home(); }
+    else { r.dataset.armed = 1; r.textContent = "Click again to erase all progress"; }
+  };
+  window.scrollTo(0,0);
+}
+
+function bar(title, extra=""){
+  return `<div class="bar"><button class="back" id="back">← Site</button><span class="title">${esc(title)}</span><span class="right">${extra}</span></div>`;
+}
+function bindBack(){ document.getElementById("back").onclick = home; }
+
+/* ---------- QUIZ ---------- */
+function quiz(list, title){
+  let i = 0, score = 0, streak = 0; const misses = [];
+  function render(){
+    const q = list[i];
+    const opts = shuffle([q.a, ...q.d]);
+    $app.innerHTML = bar(title, `<span>${i+1}/${list.length}</span><span class="streak">Streak ${streak}</span>`) +
+      `<div class="progress"><i style="width:${100*i/list.length}%"></i></div>
+      <article class="tag">
+        <div class="meta"><span>Cat. no. ${String(Q.indexOf(q)+1).padStart(3,"0")}</span><span>${esc(TOPICS[q.t])}</span></div>
+        <p class="q">${esc(q.q)}</p>
+        <div class="opts">${opts.map((o,k)=>`<button class="opt" data-o="${esc(o)}"><span class="k">${k+1}</span><span>${esc(o)}</span></button>`).join("")}</div>
+        <div id="fb"></div>
+      </article>
+      <div class="hint">Keys: 1–4 to answer · Enter for next</div>`;
+    bindBack();
+    let answered = false;
+    const buttons = [...$app.querySelectorAll(".opt")];
+    function choose(btn){
+      if(answered) return; answered = true;
+      const ok = btn.dataset.o === q.a;
+      buttons.forEach(b => { b.disabled = true; if(b.dataset.o === q.a) b.classList.add("right"); });
+      if(!ok) btn.classList.add("wrong");
+      save.m[q.id] = ok ? 1 : 0;
+      if(ok){ score++; streak++; save.finds++; save.best = Math.max(save.best, streak); } else { streak = 0; misses.push(q); }
+      persist();
+      $app.querySelector(".streak").textContent = "Streak " + streak;
+      document.getElementById("fb").innerHTML = `<div class="feedback ${ok?"good":"bad"}"><b>${ok?"Find recorded":"Not quite"}</b>${ok?"":`Answer: <strong>${esc(q.a)}</strong>. `}${esc(q.x)}</div>
+        <div class="actions"><button class="btn" id="next">${i+1<list.length?"Next →":"See results"}</button></div>`;
+      const nx = document.getElementById("next"); nx.focus(); nx.onclick = next;
+    }
+    function next(){ i++; i < list.length ? render() : results(); }
+    buttons.forEach(b => b.onclick = () => choose(b));
+    setKeys(e => {
+      if(!answered && /^[1-4]$/.test(e.key) && buttons[e.key-1]){ e.preventDefault(); choose(buttons[e.key-1]); }
+      else if(answered && e.key === "Enter" && document.activeElement?.id !== "next"){ e.preventDefault(); next(); }
+    });
+    window.scrollTo(0,0);
+  }
+  function results(){
+    setKeys(null);
+    const pct = Math.round(100*score/list.length);
+    const verdict = pct===100 ? "Clean trench" : pct>=80 ? "Solid excavation" : pct>=60 ? "Keep sifting" : "Back to the sieve";
+    $app.innerHTML = bar(title) + `<div class="result">
+      <div class="eyebrow">Field report</div>
+      <h2>${score} / ${list.length} · ${verdict}</h2>
+      <p>${pct}% correct. ${misses.length ? "Review these before the quiz:" : "Nothing missed. Dig again for a new set."}</p>
+      ${misses.length ? `<ul class="misslist">${misses.map(q=>`<li><b>${esc(q.q)}</b><span>${esc(q.a)}</span></li>`).join("")}</ul>` : ""}
+      <div class="actions">
+        ${misses.length ? `<button class="btn" id="redo">Retry misses</button>` : ""}
+        <button class="btn ghost" id="again">Dig again</button>
+        <button class="btn ghost" id="tohome">Back to site</button>
+      </div></div>`;
+    bindBack();
+    if(misses.length) document.getElementById("redo").onclick = () => quiz(shuffle(misses), title + " · retry");
+    document.getElementById("again").onclick = () => quiz(shuffle(list), title);
+    document.getElementById("tohome").onclick = home;
+    window.scrollTo(0,0);
+  }
+  if(!list.length) return home();
+  render();
+}
+
+/* ---------- MATCH ---------- */
+function match(){
+  setKeys(null);
+  const set = shuffle(PAIRS).slice(0,6);
+  const right = shuffle(set.map((p,i)=>({t:p[1], i})));
+  let sel = null, done = 0, mistakes = 0;
+  $app.innerHTML = bar("Match the Finds", `<span id="mstat">0/6 matched · 0 misses</span>`) + `
+    <p class="eyebrow" style="text-align:center;margin:0 0 14px">Tap a name, then tap what they're known for</p>
+    <div class="match">
+      <div class="col"><h3>Who</h3>${set.map((p,i)=>`<button class="chip person" data-l="${i}">${esc(p[0])}</button>`).join("")}</div>
+      <div class="col"><h3>Known for</h3>${right.map(r=>`<button class="chip" data-r="${r.i}">${esc(r.t)}</button>`).join("")}</div>
+    </div><div id="mdone"></div>`;
+  bindBack();
+  const stat = () => document.getElementById("mstat").textContent = `${done}/6 matched · ${mistakes} miss${mistakes===1?"":"es"}`;
+  $app.querySelectorAll("[data-l]").forEach(b => b.onclick = () => {
+    $app.querySelectorAll("[data-l]").forEach(x => x.classList.remove("sel"));
+    b.classList.add("sel"); sel = b;
+  });
+  $app.querySelectorAll("[data-r]").forEach(b => b.onclick = () => {
+    if(!sel) return;
+    if(sel.dataset.l === b.dataset.r){
+      [sel,b].forEach(x => { x.classList.remove("sel"); x.classList.add("done"); x.disabled = true; });
+      sel = null; done++; save.finds++; persist();
+      if(done === 6){
+        document.getElementById("mdone").innerHTML = `<div class="result" style="margin-top:20px"><div class="eyebrow">Field report</div>
+          <h2>All six matched</h2><p>${mistakes===0?"No misses. Clean work.":`${mistakes} miss${mistakes===1?"":"es"} along the way.`}</p>
+          <div class="actions"><button class="btn" id="more">New set</button><button class="btn ghost" id="tohome">Back to site</button></div></div>`;
+        document.getElementById("more").onclick = match;
+        document.getElementById("tohome").onclick = home;
+      }
+    } else {
+      mistakes++; b.classList.remove("miss"); void b.offsetWidth; b.classList.add("miss");
+    }
+    stat();
+  });
+}
+
+/* ---------- SEQUENCE ---------- */
+function seqMenu(){
+  setKeys(null);
+  $app.innerHTML = bar("Stratigraphy") + `<p style="max-width:60ch">Deepest layers are oldest. Choose a sequence, then tap the items in order.</p>
+    <div class="modes" style="max-width:640px">${SEQS.map((s,i)=>`<button class="mode" data-s="${i}"><span class="ico">${s.items.length}</span><b>${esc(s.name)}</b><span>${esc(s.prompt)}</span></button>`).join("")}</div>`;
+  bindBack();
+  $app.querySelectorAll("[data-s]").forEach(b => b.onclick = () => seq(SEQS[b.dataset.s]));
+}
+function seq(S){
+  let items;
+  items = S.items;
+  const correct = items.map((it,i)=>({label:it[0], when:it[1]||"", i}));
+  let pool = shuffle(correct); while(correct.length>1 && pool.every((p,k)=>p.i===k)) pool = shuffle(correct);
+  const placed = [];
+  let checked = false;
+  function render(){
+    $app.innerHTML = bar(S.name) + `<div class="seq">
+      <p class="seq-prompt">${esc(S.prompt)}</p><p class="eyebrow">Tap to place · tap a placed item to remove it</p>
+      <div class="slots">${correct.map((_,k)=>{
+        const p = placed[k];
+        const cls = p ? ("filled" + (checked ? (p.i===k?" right":" wrong") : "")) : "";
+        return `<div class="slot ${cls}" data-k="${k}" ${p&&!checked?'role="button" tabindex="0"':""}><span class="n">${k+1}</span><span>${p?esc(p.label):""}</span><span class="when">${checked&&p?esc(p.when):""}</span></div>`;
+      }).join("")}</div>
+      <div class="pool">${pool.filter(p=>!placed.includes(p)).map(p=>`<button class="chip" data-p="${p.i}">${esc(p.label)}</button>`).join("")}</div>
+      <div id="sfb"></div>
+      <div class="actions">
+        ${checked ? `<button class="btn" id="again">Try again</button><button class="btn ghost" id="menu">Other sequences</button>`
+                  : `<button class="btn" id="check" ${placed.length<correct.length?"disabled":""}>Check order</button>`}
+      </div></div>`;
+    bindBack();
+    $app.querySelectorAll("[data-p]").forEach(b => b.onclick = () => { placed.push(correct[b.dataset.p]); render(); });
+    if(!checked) $app.querySelectorAll(".slot.filled").forEach(s => {
+      const rm = () => { placed.splice(+s.dataset.k); render(); };
+      s.onclick = rm; s.onkeydown = e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); rm(); } };
+    });
+    if(checked){
+      const n = placed.filter((p,k)=>p.i===k).length;
+      if(n===correct.length){ save.finds++; persist(); }
+      document.getElementById("sfb").innerHTML = `<div class="feedback ${n===correct.length?"good":"bad"}"><b>${n===correct.length?"Perfect sequence":"Disturbed layers"}</b>${n} of ${correct.length} in the right position.${n<correct.length?" Correct order: "+correct.map(c=>esc(c.label)).join(" → "):""}</div>`;
+      document.getElementById("again").onclick = () => seq(S);
+      document.getElementById("menu").onclick = seqMenu;
+    } else {
+      document.getElementById("check").onclick = () => { checked = true; render(); };
+    }
+  }
+  render();
+}
+
+/* ---------- FLASHCARDS ---------- */
+function cards(){
+  let deck = shuffle(CARDS), i = 0, flipped = false, again = [];
+  function render(){
+    if(i >= deck.length){
+      if(again.length){ deck = shuffle(again); again = []; i = 0; }
+      else {
+        setKeys(null);
+        $app.innerHTML = bar("Field Cards") + `<div class="result"><div class="eyebrow">Field report</div><h2>Deck cleared</h2><p>You marked all ${CARDS.length} terms as known.</p>
+          <div class="actions"><button class="btn" id="again">Shuffle again</button><button class="btn ghost" id="tohome">Back to site</button></div></div>`;
+        bindBack(); document.getElementById("again").onclick = cards; document.getElementById("tohome").onclick = home; return;
+      }
+    }
+    const [term, def] = deck[i]; flipped = false;
+    $app.innerHTML = bar("Field Cards", `<span>${i+1}/${deck.length}</span><span>${again.length} to repeat</span>`) + `
+      <div class="card-stage"><button class="fcard" id="fc" aria-label="Flip card">
+        <div class="face"><span class="eyebrow">Term</span><div class="term">${esc(term)}</div></div>
+        <div class="face back"><span class="eyebrow">${esc(term)}</span><div class="def">${esc(def)}</div></div>
+      </button></div>
+      <div class="actions" style="max-width:640px;margin:16px auto 0">
+        <button class="btn ghost" id="rep">Again</button><button class="btn" id="got">Got it</button></div>
+      <div class="hint" style="max-width:640px;margin:8px auto 0">Keys: Space to flip · 1 again · 2 got it</div>`;
+    bindBack();
+    const fc = document.getElementById("fc");
+    const flip = () => { flipped = !flipped; fc.classList.toggle("flip", flipped); };
+    const got = () => { i++; render(); };
+    const rep = () => { again.push(deck[i]); i++; render(); };
+    fc.onclick = flip;
+    document.getElementById("got").onclick = got;
+    document.getElementById("rep").onclick = rep;
+    setKeys(e => {
+      if(e.key===" " && document.activeElement !== fc){ e.preventDefault(); flip(); }
+      else if(e.key==="1"){ rep(); } else if(e.key==="2"){ got(); }
+    });
+  }
+  render();
+}
+
+home();
+</script>
+</body>
+</html>
